@@ -19,12 +19,11 @@ import com.ichi2.anki.AnkiDroidApp
 import com.ichi2.anki.CollectionManager.withCol
 import com.ichi2.anki.MetaDB
 import com.ichi2.anki.R
+import com.ichi2.anki.common.coroutines.applicationScope
 import com.ichi2.anki.common.preferences.sharedPrefs
 import com.ichi2.anki.common.utils.android.SdCard
 import com.ichi2.anki.common.utils.ext.allDecksCounts
 import com.ichi2.anki.settings.Prefs
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -77,9 +76,8 @@ object WidgetStatus {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     private fun launchSmallWidgetUpdateJob(context: Context): Job =
-        GlobalScope.launch {
+        applicationScope.launch {
             try {
                 updateSmallWidgetStatus(context)
                 Timber.v("launchUpdateJob completed")
