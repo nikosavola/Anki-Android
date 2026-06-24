@@ -64,8 +64,9 @@ object ContentResolverUtil {
         } else {
             // If scheme is a File
             // This will replace white spaces with %20 and also other special characters. This will avoid returning null values on file name with spaces and special characters.
-            if (uri.path != null) {
-                extension = AssetHelper.getFileExtensionFromFilePath(uri.path as String)
+            val path = uri.path
+            if (path != null) {
+                extension = AssetHelper.getFileExtensionFromFilePath(path)
             }
         }
         return if (extension == null) {

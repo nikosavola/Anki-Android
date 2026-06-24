@@ -50,7 +50,7 @@ class AdvancedSettingsFragment : SettingsFragment() {
         // Check that input is valid before committing change in the collection path
         requirePreference<EditTextPreference>(CollectionHelper.PREF_COLLECTION_PATH).apply {
             setOnPreferenceChangeListener { _, newValue: Any? ->
-                val newPath = newValue as String
+                val newPath = newValue as? String ?: return@setOnPreferenceChangeListener false
                 try {
                     CollectionHelper.initializeAnkiDroidDirectory(File(newPath))
                     launchCatchingTask {
@@ -77,7 +77,7 @@ class AdvancedSettingsFragment : SettingsFragment() {
 
         val ttsPref = requirePreference<SwitchPreferenceCompat>(R.string.tts_key)
         ttsPref.setOnPreferenceChangeListener { _, isChecked ->
-            if (!(isChecked as Boolean)) return@setOnPreferenceChangeListener true
+            if (isChecked as? Boolean != true) return@setOnPreferenceChangeListener true
             AlertDialog.Builder(requireContext()).show {
                 setIcon(R.drawable.ic_warning)
                 setMessage(R.string.readtext_deprecation_warn)

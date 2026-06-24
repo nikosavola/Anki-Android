@@ -260,14 +260,14 @@ object PreferenceUpgradeService {
 
             private fun getNewToolbarButtons(preferences: SharedPreferences): ArrayList<CustomToolbarButton> {
                 // get old toolbar prefs
-                val set = preferences.getStringSet("note_editor_custom_buttons", hashSetInit<String>(0)) as Set<String?>
+                val set = preferences.getStringSet("note_editor_custom_buttons", hashSetInit<String>(0)) ?: hashSetInit<String>(0)
                 // new list with buttons size
                 val buttons = ArrayList<CustomToolbarButton>(set.size)
 
                 // parse fields with separator
                 for (s in set) {
                     val fields =
-                        s!!
+                        s
                             .split(
                                 Consts.FIELD_SEPARATOR.toRegex(),
                                 CustomToolbarButton.KEEP_EMPTY_ENTRIES.coerceAtLeast(0),

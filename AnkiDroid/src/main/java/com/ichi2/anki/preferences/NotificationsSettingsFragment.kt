@@ -4,7 +4,6 @@
 package com.ichi2.anki.preferences
 
 import android.app.AlarmManager
-import android.content.Context.ALARM_SERVICE
 import android.content.Intent
 import androidx.core.app.PendingIntentCompat
 import androidx.preference.ListPreference
@@ -36,8 +35,9 @@ class NotificationsSettingsFragment : SettingsFragment() {
         requirePreference<ListPreference>(R.string.pref_notifications_minimum_cards_due_key).apply {
             updateNotificationPreference(this)
             setOnPreferenceChangeListener { preference, newValue ->
-                updateNotificationPreference(preference as ListPreference)
-                if ((newValue as String).toInt() < PENDING_NOTIFICATIONS_ONLY) {
+                updateNotificationPreference(preference as? ListPreference ?: return@setOnPreferenceChangeListener true)
+                val value = (newValue as? String ?: return@setOnPreferenceChangeListener true).toInt()
+                if (value < PENDING_NOTIFICATIONS_ONLY) {
                     scheduleNotification(TimeManager.time, requireContext())
                 } else {
                     val intent =
@@ -48,7 +48,8 @@ class NotificationsSettingsFragment : SettingsFragment() {
                             0,
                             false,
                         )
-                    val alarmManager = requireActivity().getSystemService(ALARM_SERVICE) as AlarmManager
+                    val alarmManager = requireActivity().getSystemService(AlarmManager::class.java)
+                        ?: return@setOnPreferenceChangeListener true
                     if (intent != null) {
                         alarmManager.cancel(intent)
                     }
