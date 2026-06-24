@@ -44,14 +44,14 @@ import com.ichi2.anki.storage.StorageDecision
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import net.ankiweb.rsdroid.Backend
 import net.ankiweb.rsdroid.BackendException
 import net.ankiweb.rsdroid.BackendFactory
 import net.ankiweb.rsdroid.Translations
 import timber.log.Timber
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 object CollectionManager {
     /**
@@ -92,7 +92,7 @@ object CollectionManager {
     @VisibleForTesting
     var emulatedOpenFailure: CollectionOpenFailure? = null
 
-    private val testMutex = ReentrantLock()
+    private val testMutex = Mutex()
 
     private var currentSyncCertificate: String = ""
 
@@ -322,8 +322,10 @@ object CollectionManager {
      */
     private fun <T> blockForQueue(block: CollectionManager.() -> T): T =
         if (isRobolectric) {
-            testMutex.withLock {
-                block(this)
+            runBlocking {
+                testMutex.withLock {
+                    block(this@CollectionManager)
+                }
             }
         } else {
             runBlocking {

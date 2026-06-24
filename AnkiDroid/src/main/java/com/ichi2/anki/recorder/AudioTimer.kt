@@ -56,21 +56,22 @@ class AudioTimer(
     /**
      * Starts the timer from the current accumulated duration.
      * idempotent: calling this while running does nothing.
+     *
+     * Must be called from the main thread; thread safety is provided by [scope]'s
+     * single-threaded [kotlinx.coroutines.Dispatchers.Main] dispatcher.
      */
     fun start() {
-        synchronized(this) {
-            if (timerJob?.isActive == true) return
+        if (timerJob?.isActive == true) return
 
-            sessionStartTime = timeSource.markNow()
+        sessionStartTime = timeSource.markNow()
 
-            // A parent job to manage all tick loops concurrently
-            timerJob =
-                scope.launch {
-                    launchUiLoop()
-                    launchWaveformLoop()
-                    launchNotificationLoop()
-                }
-        }
+        // A parent job to manage all tick loops concurrently
+        timerJob =
+            scope.launch {
+                launchUiLoop()
+                launchWaveformLoop()
+                launchNotificationLoop()
+            }
     }
 
     private fun CoroutineScope.launchUiLoop() =
@@ -103,39 +104,44 @@ class AudioTimer(
     /**
      * Resets the timer to a specific duration and starts it immediately.
      * Useful when resuming an existing recording.
+     *
+     * Must be called from the main thread; thread safety is provided by [scope]'s
+     * single-threaded [kotlinx.coroutines.Dispatchers.Main] dispatcher.
      */
-    fun start(fromDuration: Duration) =
-        synchronized(this) {
-            timerJob?.cancel()
-            timerJob = null
+    fun start(fromDuration: Duration) {
+        timerJob?.cancel()
+        timerJob = null
 
-            accumulatedDuration = fromDuration
-            sessionStartTime = null
+        accumulatedDuration = fromDuration
+        sessionStartTime = null
 
-            start()
-        }
+        start()
+    }
 
     /**
      * Pauses the timer, saving the current accumulated duration.
+     *
+     * Must be called from the main thread; thread safety is provided by [scope]'s
+     * single-threaded [kotlinx.coroutines.Dispatchers.Main] dispatcher.
      */
-    fun pause() =
-        synchronized(this) {
-            accumulatedDuration = calculateDuration()
-            timerJob?.cancel()
-            timerJob = null
-            sessionStartTime = null
-        }
+    fun pause() {
+        accumulatedDuration = calculateDuration()
+        timerJob?.cancel()
+        timerJob = null
+        sessionStartTime = null
+    }
 
     /**
      * Stops the timer and resets the duration to zero.
+     *
+     * Must be called from the main thread; thread safety is provided by [scope]'s
+     * single-threaded [kotlinx.coroutines.Dispatchers.Main] dispatcher.
      */
     fun stop() {
-        synchronized(this) {
-            timerJob?.cancel()
-            timerJob = null
-            accumulatedDuration = Duration.ZERO
-            sessionStartTime = null
-        }
+        timerJob?.cancel()
+        timerJob = null
+        accumulatedDuration = Duration.ZERO
+        sessionStartTime = null
 
         onTimerTick(Duration.ZERO)
     }
