@@ -437,9 +437,8 @@ open class DeckPicker :
         launchCatchingTask {
             handleDeckSelection(deckId, selectionType)
             if (fragmented) {
-                // Calling notifyDataSetChanged() will update the color of the selected deck.
-                // This interferes with the ripple effect, so we don't do it if lollipop and not tablet view
-                deckListAdapter.notifyDataSetChanged()
+                // handleDeckSelection() already refreshed the selected deck's highlight via
+                // DeckAdapter.updateSelectedDeck(); reload the list to refresh the due counts.
                 updateDeckList()
             }
         }
@@ -2102,7 +2101,7 @@ open class DeckPicker :
             createDeckDialog.deckName = currentName
             createDeckDialog.onNewDeckCreated = {
                 dismissAllDialogFragments()
-                deckListAdapter.notifyDataSetChanged()
+                // updateDeckList() reloads the data and diffs it into the adapter via submitList()
                 updateDeckList()
                 tryShowStudyOptionsPanel()
             }
@@ -2184,7 +2183,7 @@ open class DeckPicker :
         createDeckDialog.onNewDeckCreated = {
             // a deck was created
             dismissAllDialogFragments()
-            deckListAdapter.notifyDataSetChanged()
+            // updateDeckList() reloads the data and diffs it into the adapter via submitList()
             updateDeckList()
             tryShowStudyOptionsPanel()
             invalidateOptionsMenu()

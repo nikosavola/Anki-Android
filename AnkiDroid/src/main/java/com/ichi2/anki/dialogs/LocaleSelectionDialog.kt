@@ -14,6 +14,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.ichi2.anki.R
 import com.ichi2.anki.analytics.AnalyticsDialogFragment
@@ -88,9 +90,11 @@ class LocaleSelectionDialog : AnalyticsDialogFragment() {
     private inner class LocaleListAdapter(
         private val locales: Array<Locale>,
         private val onLocaleSelected: (Locale) -> Unit,
-    ) : RecyclerView.Adapter<TextViewHolder>(),
+    ) : ListAdapter<Locale, TextViewHolder>(LocaleDiffCallback),
         Filterable {
-        private val filteredLocales: MutableList<Locale> = locales.toMutableList()
+        init {
+            submitList(locales.toList())
+        }
 
         inner class TextViewHolder(
             val textView: TextView,
@@ -108,12 +112,10 @@ class LocaleSelectionDialog : AnalyticsDialogFragment() {
             holder: TextViewHolder,
             position: Int,
         ) {
-            val locale = filteredLocales[position]
+            val locale = getItem(position)
             holder.textView.text = locale.displayName
             holder.textView.setOnClickListener { onLocaleSelected(locale) }
         }
-
-        override fun getItemCount(): Int = filteredLocales.size
 
         override fun getFilter(): Filter {
             return object : TypedFilter<Locale>({ locales.toList() }) {
@@ -131,9 +133,7 @@ class LocaleSelectionDialog : AnalyticsDialogFragment() {
                     constraint: CharSequence?,
                     results: List<Locale>,
                 ) {
-                    filteredLocales.clear()
-                    filteredLocales.addAll(results)
-                    notifyDataSetChanged()
+                    submitList(results)
                 }
             }
         }
@@ -142,6 +142,19 @@ class LocaleSelectionDialog : AnalyticsDialogFragment() {
     companion object {
         const val REQUEST_HINT_LOCALE_SELECTION = "request_hint_locale_selection"
         const val KEY_SELECTED_LOCALE = "key_selected_locale"
+
+        private val LocaleDiffCallback =
+            object : DiffUtil.ItemCallback<Locale>() {
+                override fun areItemsTheSame(
+                    oldItem: Locale,
+                    newItem: Locale,
+                ): Boolean = oldItem == newItem
+
+                override fun areContentsTheSame(
+                    oldItem: Locale,
+                    newItem: Locale,
+                ): Boolean = oldItem == newItem
+            }
 
         /**
          * Language identifier for International Phonetic Alphabet. This isn't available from [Locale.getAvailableLocales], but

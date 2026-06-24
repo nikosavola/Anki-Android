@@ -220,6 +220,9 @@ class CardBrowserFragment :
     /** The focused row, should only be used for efficient `notifyItemChanged` calls */
     private var focusedRow: CardOrNoteId? = null
 
+    /** The previously selected rows, used to only rebind rows whose selection actually changed */
+    private var selectedRows: Set<CardOrNoteId> = emptySet()
+
     // Dev option for Issue 18709
     private val useSearchView: Boolean
         get() = Prefs.devUsingCardBrowserSearchView
@@ -952,7 +955,14 @@ class CardBrowserFragment :
             }
         }
 
-        fun onSelectedRowsChanged(rows: Set<Any>) = cardsAdapter.notifyDataSetChanged()
+        fun onSelectedRowsChanged(rows: Set<CardOrNoteId>) {
+            // Only rebind rows whose selection state actually changed, rather than the whole list.
+            val changed = (selectedRows - rows) + (rows - selectedRows)
+            selectedRows = rows.toSet()
+            changed
+                .mapNotNull { activityViewModel.getPositionOfId(it) }
+                .forEach { cardsAdapter.notifyItemChanged(it) }
+        }
 
         fun onFocusedRowChanged(newFocused: CardOrNoteId?) {
             val previous = focusedRow
