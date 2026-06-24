@@ -7,6 +7,8 @@ import com.ichi2.testutils.ExternalEntryPoints
 import com.ichi2.testutils.ExternalEntryPoints.EntryPoint
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.containsInAnyOrder
+import org.hamcrest.Matchers.hasItem
+import org.hamcrest.Matchers.not
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -26,6 +28,22 @@ class ExternalEntryPointsTest : RobolectricTest() {
         )
     }
 
+    /**
+     * Regression for the exported-component hardening: the [Reviewer] previously declared a bare
+     * `<action VIEW>` / `<category DEFAULT>` intent-filter with no scheme/mime data constraints,
+     * which made it `exported` and implicitly launchable by any installed app with an arbitrary
+     * `deckId` extra. No internal code produces that intent: external deck review goes through
+     * [IntentHandler] (see [IntentHandler.getReviewDeckIntent]). The Reviewer must not be an
+     * external entry point.
+     */
+    @Test
+    fun reviewerIsNotAnExternalEntryPoint() {
+        assertThat(
+            ExternalEntryPoints.all(targetContext),
+            not(hasItem(EntryPoint.Activity(Reviewer::class.qualifiedName!!))),
+        )
+    }
+
     companion object {
         /**
          * All externally-reachable entry points, consumed by per-scenario tests.
@@ -35,7 +53,6 @@ class ExternalEntryPointsTest : RobolectricTest() {
                 // Activities reached via the launcher, deep links, share/import, PROCESS_TEXT or shortcuts
                 EntryPoint.Activity("com.ichi2.anki.IntentHandler"),
                 EntryPoint.Activity("com.ichi2.anki.IntentHandler2"),
-                EntryPoint.Activity("com.ichi2.anki.Reviewer"),
                 EntryPoint.ActivityAlias("com.ichi2.anki.AnkiCardContextMenuAction", "com.ichi2.anki.IntentHandler2"),
                 EntryPoint.ActivityAlias("com.ichi2.anki.CardBrowserDeepLink", "com.ichi2.anki.IntentHandler"),
                 EntryPoint.Activity("com.ichi2.anki.instantnoteeditor.InstantNoteEditorActivity"),

@@ -57,7 +57,6 @@ class ExternalEntryPointsUndecidedStorageTest : RobolectricTest() {
 
     @Before
     fun notYetHandledEntryPoints() {
-        notYetHandled<Reviewer>("setupFlags (onCreateOptionsMenu) reads flag names from the collection; the failure is unhandled")
         notYetHandled<InstantNoteEditorActivity>("InstantEditorViewModel opens the collection when constructed; the failure is unhandled")
         notYetHandled<DeckPickerWidgetConfig>("onCreate calls isCollectionEmpty(); the failure is unhandled")
         notYetHandled<CardAnalysisWidgetConfig>("onCreate calls isCollectionEmpty(); shows an error dialog, not the setup flow")
@@ -95,7 +94,6 @@ class ExternalEntryPointsUndecidedStorageTest : RobolectricTest() {
             // share text with AnkiDroid
             "com.ichi2.anki.IntentHandler2", "com.ichi2.anki.instantnoteeditor.InstantNoteEditorActivity" ->
                 Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "dog")
-            "com.ichi2.anki.Reviewer" -> Intent(Intent.ACTION_VIEW)
             // 'Anki Card' text selection menu entry
             "com.ichi2.anki.AnkiCardContextMenuAction" ->
                 Intent(Intent.ACTION_PROCESS_TEXT).setType("text/plain").putExtra(Intent.EXTRA_PROCESS_TEXT, "dog")

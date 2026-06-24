@@ -365,18 +365,16 @@
             android:label="@string/model_editor_label"
             android:configChanges="keyboardHidden|orientation|screenSize"
             />
+        <!-- Not exported: launched internally via an explicit Intent (see Reviewer.getIntent).
+             External deck review is routed through IntentHandler (see IntentHandler.getReviewDeckIntent),
+             so the Reviewer needs no exported `<action VIEW>` intent-filter of its own. -->
         <activity
             android:name="com.ichi2.anki.Reviewer"
-            android:exported="true"
+            android:exported="false"
             android:theme="@style/Theme_Dark.Launcher"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:windowSoftInputMode="adjustResize"
-            android:parentActivityName=".DeckPicker">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
+            android:parentActivityName=".DeckPicker" />
         <activity
             android:name="com.ichi2.anki.account.AccountActivity"
             android:label="@string/menu_my_account"
