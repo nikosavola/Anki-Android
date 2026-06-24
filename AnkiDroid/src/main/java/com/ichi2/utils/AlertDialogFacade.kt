@@ -346,7 +346,7 @@ fun AlertDialog.input(
 
     getInputField().apply {
         if (displayKeyboard) {
-            AndroidUiUtils.setFocusAndOpenKeyboard(this, window!!)
+            this@input.window?.let { AndroidUiUtils.setFocusAndOpenKeyboard(this, it) }
         }
 
         inputType?.let { this.inputType = it }
@@ -404,7 +404,10 @@ fun AlertDialog.getInputTextLayout() =
  * @return the [EditText] of the dialog
  * @throws IllegalArgumentException if the dialog does not contain [R.id.dialog_text_input_layout]]
  */
-fun AlertDialog.getInputField() = getInputTextLayout().editText!!
+fun AlertDialog.getInputField() =
+    requireNotNull(getInputTextLayout().editText) {
+        "TextInputLayout has no EditText child"
+    }
 
 /** @see AlertDialog.getButton */
 val AlertDialog.positiveButton: Button

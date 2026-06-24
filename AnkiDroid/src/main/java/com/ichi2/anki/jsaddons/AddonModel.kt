@@ -53,7 +53,7 @@ data class AddonModel(
         remove: Boolean,
     ) {
         val reviewerEnabledAddonSet = preferences.getStringSet(jsAddonKey, HashSet())
-        val newStrSet: MutableSet<String> = reviewerEnabledAddonSet?.toHashSet()!!
+        val newStrSet: MutableSet<String> = reviewerEnabledAddonSet?.toHashSet() ?: HashSet()
 
         if (remove) {
             newStrSet.remove(name)

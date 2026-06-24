@@ -138,7 +138,7 @@ object ImportUtils {
             // This intent is used for opening apkg package files
             // We want to go immediately to DeckPicker, clearing any history in the process
             Timber.i("IntentHandler/ User requested to view a file")
-            val extras = if (intent.extras == null) "none" else intent.extras!!.keySet().joinToString(", ")
+            val extras = intent.extras?.keySet()?.joinToString(", ") ?: "none"
             Timber.i("Intent: %s. Data: %s", intent, extras)
             return try {
                 handleFileImportInternal(context, intent)
@@ -224,7 +224,10 @@ object ImportUtils {
                 }
             }
             if (isValidTextOrDataFile(context, importPathUri)) {
-                (context as Activity).onSelectedCsvForImport(intent!!)
+                if (intent == null) {
+                    return ImportResult.Failure(context.getString(R.string.import_error_handle_exception))
+                }
+                (context as Activity).onSelectedCsvForImport(intent)
                 return ImportResult.Success
             } else if (!isValidPackageName(filename)) {
                 return if (isAnkiDatabase(filename)) {
@@ -239,7 +242,10 @@ object ImportUtils {
 
             // Copy to temporary file
             filename = validateFileName(filename)
-            val tempOutDir: String = Uri.fromFile(File(context.cacheDir, filename)).encodedPath!!
+            val tempOutDir: String =
+                requireNotNull(Uri.fromFile(File(context.cacheDir, filename)).encodedPath) {
+                    "encodedPath was null for cache file: $filename"
+                }
 
             copyFileToCache(context, importPathUri, tempOutDir).asErrorDetails()?.let { details ->
                 CrashReportService.sendExceptionReport(details.exceptionForReport, "ImportUtils")
@@ -449,13 +455,14 @@ object ImportUtils {
             fun getDataUri(intent: Intent): Uri? {
                 if (intent.data == null) {
                     Timber.i("No intent data. Attempting to read clip data.")
-                    if (intent.clipData == null || intent.clipData!!.itemCount == 0) {
+                    val clipData = intent.clipData
+                    if (clipData == null || clipData.itemCount == 0) {
                         return null
                     }
-                    return intent.clipData?.getItemAt(0)?.uri
+                    return clipData.getItemAt(0)?.uri
                 }
                 // If Uri is of scheme which is supported by ContentResolver, read the contents
-                val intentUriScheme = intent.data!!.scheme
+                val intentUriScheme = intent.data?.scheme
                 return when (intentUriScheme) {
                     ContentResolver.SCHEME_CONTENT,
                     ContentResolver.SCHEME_FILE,
@@ -493,7 +500,7 @@ object ImportUtils {
             @SuppressLint("LocaleRootUsage")
             fun hasExtension(
                 filename: String,
-                extension: String?,
+                extension: String,
             ): Boolean {
                 val fileParts = filename.split("\\.".toRegex()).toTypedArray()
                 if (fileParts.size < 2) {
@@ -502,7 +509,7 @@ object ImportUtils {
                 val extensionSegment = fileParts[fileParts.size - 1]
                 // either "apkg", or "apkg (1)".
                 // COULD_BE_BETTE: accepts .apkgaa"
-                return extensionSegment.lowercase(Locale.ROOT).startsWith(extension!!)
+                return extensionSegment.lowercase(Locale.ROOT).startsWith(extension)
             }
         }
     }
@@ -526,7 +533,10 @@ object ImportUtils {
             }
 
         companion object {
-            fun fromMessage(message: Message): CollectionImportReplace = CollectionImportReplace(message.data.getString("importPath")!!)
+            fun fromMessage(message: Message): CollectionImportReplace =
+                CollectionImportReplace(
+                    requireNotNull(message.data.getString("importPath")) { "Missing importPath in message data" },
+                )
         }
     }
 
@@ -549,7 +559,10 @@ object ImportUtils {
             }
 
         companion object {
-            fun fromMessage(message: Message): CollectionImportAdd = CollectionImportAdd(message.data.getString("importPath")!!)
+            fun fromMessage(message: Message): CollectionImportAdd =
+                CollectionImportAdd(
+                    requireNotNull(message.data.getString("importPath")) { "Missing importPath in message data" },
+                )
         }
     }
 }

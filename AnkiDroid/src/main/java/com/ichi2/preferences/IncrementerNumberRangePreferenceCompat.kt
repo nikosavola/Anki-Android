@@ -53,7 +53,8 @@ class IncrementerNumberRangePreferenceCompat :
 
     class IncrementerNumberRangeDialogFragmentCompat : NumberRangeDialogFragmentCompat() {
         private var bindingRef: DialogIncrementerPreferenceBinding? = null
-        private val binding get() = bindingRef!!
+        private val binding
+            get() = checkNotNull(bindingRef) { "Binding accessed outside of view lifecycle" }
         private var lastValidEntry = 0
 
         // Reference to the system OK button
